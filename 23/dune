@@ -1,6 +1,7 @@
 (env
  (dev
-  (flags (:standard -w -27-26-32))))
+  (flags ())))
+  ;; (flags (:standard -w -27-26-32))))
 
 (library
  (name lib)
@@ -8,27 +9,35 @@
 
 (executable
  (name day10)
- (flags ())
  (promote (until-clean))
  (modules day10)
  (libraries lib grid))
 (executable
  (name day10p2)
- (flags ())
  (promote (until-clean))
  (modules day10p2)
  (libraries lib grid))
 
 (executable
  (name day11)
- (flags ())
  (promote (until-clean))
  (modules day11)
  (libraries lib grid))
 
 (executable
  (name day12)
- (flags ())
  (promote (until-clean))
  (modules day12)
+ (libraries lib grid))
+
+(executable
+ (name day13)
+ (promote (until-clean))
+ (modules day13)
+ (libraries lib grid))
+
+(executable
+ (name day13p2)
+ (promote (until-clean))
+ (modules day13p2)
  (libraries lib grid))

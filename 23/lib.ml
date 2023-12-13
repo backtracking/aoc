@@ -51,3 +51,6 @@ let memo ff =
     with Not_found -> let v = ff f x in Hashtbl.add h x v; v
   in
   f
+
+let (+=) r x =
+  r := !r + x
