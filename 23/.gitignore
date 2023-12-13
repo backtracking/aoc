@@ -1,0 +1,4 @@
+*.exe
+input*.txt
+test*.txt
+_build/
