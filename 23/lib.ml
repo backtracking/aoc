@@ -44,6 +44,11 @@ let lcm a b =
 let rec forall p lo hi =
   lo >= hi || p lo && forall p (lo+1) hi
 
+let rec sumaux f acc lo hi =
+  if lo >= hi then acc else sumaux f (acc + f lo) (lo + 1) hi
+let sum f lo hi =
+  sumaux f 0 lo hi
+
 let memo ff =
   let h = Hashtbl.create 8192 in
   let rec f x =
