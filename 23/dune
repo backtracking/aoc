@@ -54,3 +54,16 @@
  (modules day14p2)
  (libraries lib grid))
 
+(executable
+ (name day15)
+ (promote (until-clean))
+ (modules day15)
+ (libraries lib grid))
+
+(executable
+ (name day15p2)
+ (promote (until-clean))
+ (modules day15p2)
+ (libraries lib grid))
+
+
