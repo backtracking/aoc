@@ -66,4 +66,8 @@
  (modules day15p2)
  (libraries lib grid))
 
-
+(executable
+ (name day16)
+ (promote (until-clean))
+ (modules day16)
+ (libraries lib grid))

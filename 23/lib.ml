@@ -59,3 +59,6 @@ let memo ff =
 
 let (+=) r x =
   r := !r + x
+
+let iverson b =
+  if b then 1 else 0
