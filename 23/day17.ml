@@ -74,12 +74,6 @@ let () =
   G.iter_vertex add g
 
 let () =
-  (* let print_edge fmt e = *)
-  (*   let _,n,(i,j) = G.E.src e and _,n',(i',j') = G.E.dst e and c = G.E.label e in *)
-  (*   fprintf fmt "(%d,%d)--%d-->(%d,%d) " i j c i' j' in *)
-  (* let print_path = pp_print_list print_edge in *)
   let p, hl1 = D.shortest_path g (E,1,(0,1)) target in
-  (* printf "heat loss = %d@.  @[%a@]@." hl1 print_path p; *)
   let _, hl2 = D.shortest_path g (S,1,(1,0)) target in
-  printf "heat loss = %d@." (min hl1 hl2);
-  ()
+  printf "heat loss = %d@." (min hl1 hl2)
