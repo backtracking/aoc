@@ -62,3 +62,6 @@ let (+=) r x =
 
 let iverson b =
   if b then 1 else 0
+
+let rec repeat n f x =
+  if n = 0 then x else repeat (n-1) f (f x)

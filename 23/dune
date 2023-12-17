@@ -71,3 +71,15 @@
  (promote (until-clean))
  (modules day16)
  (libraries lib grid))
+
+(executable
+ (name day17)
+ (promote (until-clean))
+ (modules day17)
+ (libraries ocamlgraph lib grid))
+
+(executable
+ (name day17p2)
+ (promote (until-clean))
+ (modules day17p2)
+ (libraries ocamlgraph lib grid))
