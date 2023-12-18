@@ -18,7 +18,8 @@ let moves =
 let () = printf "%d moves@." (List.length moves)
 
 let points = ref []
-let int = ref 0 and ext = ref 0
+let int = ref 0 (* number of interior turns *)
+and ext = ref 0 (* number of exterior turns *)
 
 let interior d1 d2 = match d1, d2 with
   | E, N | N, W | W, S | S, E -> true
@@ -35,6 +36,7 @@ let rec walk (i,j as p) last ml =
 
 let () = walk (0,0) N moves
 
+(* https://en.wikipedia.org/wiki/Shoelace_formula *)
 let shoelace a =
   let n = Array.length a in
   let p i = if i = -1 then a.(n-1) else if i = n then a.(0) else a.(i) in

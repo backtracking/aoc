@@ -34,6 +34,7 @@ let rec walk (i,j as p) last ml =
 
 let () = walk (0,0) N moves
 
+(* https://en.wikipedia.org/wiki/Shoelace_formula *)
 let shoelace a =
   let n = Array.length a in
   let p i = if i = -1 then a.(n-1) else if i = n then a.(0) else a.(i) in
