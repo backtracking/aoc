@@ -75,3 +75,23 @@ let can_be_disintegrated i =
 
 let sol = sum_array bricks (fun i _ -> iverson (can_be_disintegrated i))
 let () = printf "sol = %d@." sol
+
+(* part II *)
+
+let rec other_would_fall falling rem =
+  let would_fall i =
+    not (Sint.is_empty below.(i)) &&
+    Sint.subset below.(i) falling in
+  let wf = Sint.filter would_fall rem in
+  let n = Sint.cardinal wf in
+  if n = 0 then
+    0
+  else
+    n + other_would_fall (Sint.union falling wf) (Sint.diff rem wf)
+
+let all_bricks = Sint.range 0 (Array.length bricks)
+
+let sol = sum_array bricks
+            (fun i _ -> other_would_fall (Sint.singleton i)
+                                         (Sint.remove i all_bricks))
+let () = printf "sol = %d@." sol

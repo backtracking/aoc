@@ -49,6 +49,9 @@ let rec sumaux f acc lo hi =
 let sum lo hi f =
   sumaux f 0 lo hi
 
+let rec fold_int lo hi f acc =
+  if lo >= hi then acc else fold_int (lo+1) hi f (f lo acc)
+
 let memo ff =
   let h = Hashtbl.create 8192 in
   let rec f x =
@@ -69,5 +72,8 @@ let iverson b =
 let rec repeat n f x =
   if n = 0 then x else repeat (n-1) f (f x)
 
-module Sint = Set.Make(Int)
+module Sint = struct
+  include Set.Make(Int)
+  let range lo hi = fold_int lo hi add empty
+end
 
