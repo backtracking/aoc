@@ -6,14 +6,14 @@ open Grid
 let sum = ref 0
 
 let equal g j1 j2 =
-  forall (fun i -> g.(i).(j1) = g.(i).(j2)) 0 (height g)
+  forall 0 (height g) (fun i -> g.(i).(j1) = g.(i).(j2))
 
 let vmirror avoid g =
   let w = width g in
   let rec check j =
     if 2 * j > w then raise Not_found;
     if j = avoid then check (j+1) else
-    if forall (fun j1 -> equal g j1 (2*j-1-j1)) 0 j then j else check (j+1) in
+    if forall 0 j (fun j1 -> equal g j1 (2*j-1-j1)) then j else check (j+1) in
   check 1
 
 let vmirror avoid g =

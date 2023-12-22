@@ -9,7 +9,7 @@ let gal = ref []
 
 let is_empty c = c = '.'
 let empty_row i = Array.for_all is_empty g.(i)
-let empty_col j = forall (fun i -> is_empty g.(i).(j)) 0 (G.height g)
+let empty_col j = forall 0 (G.height g) (fun i -> is_empty g.(i).(j))
 
 let exp = 999_999 (* or 1 *)
 

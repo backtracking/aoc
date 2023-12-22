@@ -20,5 +20,5 @@ let column j =
   done;
   !s
 
-let s = sum column 0 (width g)
+let s = sum 0 (width g) column
 let () = printf "sum = %d@." s

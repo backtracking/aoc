@@ -41,12 +41,12 @@ let lcm a b =
   else if b = 0 then a
   else (a / gcd a b) * b
 
-let rec forall p lo hi =
-  lo >= hi || p lo && forall p (lo+1) hi
+let rec forall lo hi p =
+  lo >= hi || p lo && forall (lo+1) hi p
 
 let rec sumaux f acc lo hi =
   if lo >= hi then acc else sumaux f (acc + f lo) (lo + 1) hi
-let sum f lo hi =
+let sum lo hi f =
   sumaux f 0 lo hi
 
 let memo ff =
@@ -57,6 +57,9 @@ let memo ff =
   in
   f
 
+let sum_array a f =
+  sum 0 (Array.length a) (fun i -> f i a.(i))
+
 let (+=) r x =
   r := !r + x
 
@@ -65,3 +68,6 @@ let iverson b =
 
 let rec repeat n f x =
   if n = 0 then x else repeat (n-1) f (f x)
+
+module Sint = Set.Make(Int)
+
