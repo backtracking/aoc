@@ -121,6 +121,12 @@
  (libraries lib grid))
 
 (executable
+ (name day21hl)
+ (promote (until-clean))
+ (modules day21hl)
+ (libraries lib grid))
+
+(executable
  (name day22)
  (promote (until-clean))
  (modules day22)

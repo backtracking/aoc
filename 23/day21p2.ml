@@ -41,11 +41,6 @@ let show s =
       let p = i,j in
       if get g (norm p) = '#' then '#' else
       if S.mem p s then 'O' else '.') in
-(*
-  let g = init h w (fun p ->
-              if get g p = '#' then '#' else
-              if S.mem p s then 'O' else '.') in
-*)
   printf "%a@." print_chars g;
   let n = divw (max (maxi - mini) (maxj - minj)) + 1 in
   let m = Array.make_matrix n n 0 in
@@ -64,3 +59,24 @@ let rec walk n s =
     walk (n-1) (S.fold add s S.empty)
 
 let () = printf "%d plots@." (walk nbsteps (S.singleton start))
+
+(*
+131x131
+7459 even / 7346 odd
+start = 65,65
+
+n  steps          2n(n+1)+1
+    65    3744
+0  196   33417     1
+1  327   92680     5
+2  458  181533    13
+3  589  299976    25
+
+  844 5545 1094    0
+ 5534 7463 5974   35
+ 1076 5963 1363    0
+    0   35    0    0
+
+
+
+*)
