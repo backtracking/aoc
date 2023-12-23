@@ -17,15 +17,11 @@ let longest = ref 0
 
 let rec walk len p =
   if p = target then (
-    (* printf "len = %d@." len; *)
     if len > !longest then longest := len
   ) else if not (get visited p) then (
     set visited p true;
     let len = len + 1 in
     (match get g p with
-(*
-    | '.' | 'v' | '>' -> iter4 (move len) g p
-*)
     | '.' -> iter4 (move len) g p
     | 'v' -> walk len (south p)
     | '>' -> walk len (east p)
@@ -39,7 +35,12 @@ and move len p c =
 let () = walk 0 start
 let () = printf "max length = %d@." !longest
 
-(* part II *)
+(* part II
+
+   Observation: there are few branch points on the map. So,
+   - first, build the graph of the paths connecting the branch points;
+   - second, compute the longest path using backtracking.
+*)
 
 module H = Hashtbl
 
