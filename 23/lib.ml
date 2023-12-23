@@ -77,3 +77,6 @@ module Sint = struct
   let range lo hi = fold_int lo hi add empty
 end
 
+let eucl_div a b =
+  if b <= 0 then invalid_arg "eucl_div";
+  if a >= 0 then a / b, a mod b else a / b - 1, b + a mod b
