@@ -20,8 +20,13 @@ let split_strings ?(sep=' ') s =
   List.filter ((<>) "") l
 
 let split2 ?(sep=' ') s =
-  match String.split_on_char sep s with
+  match split_strings ~sep s with
   | [x; y] -> x, y
+  | _ -> invalid_arg "split2"
+
+let split3 ?(sep=' ') s =
+  match split_strings ~sep s with
+  | [x; y; z] -> x, y, z
   | _ -> invalid_arg "split2"
 
 let split_ints ?(sep=' ') s =

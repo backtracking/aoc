@@ -132,3 +132,9 @@
  (modules day23)
  (libraries lib grid))
 
+(executable
+ (name day24)
+ (promote (until-clean))
+ (modules day24)
+ (libraries lib grid))
+
