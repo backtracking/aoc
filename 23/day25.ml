@@ -25,16 +25,19 @@ module Display = struct
 end
 module Neato = Graph.Graphviz.Neato(Display)
 
+(* display the graph with Graphivz, and find the cut by manual inspection *)
 let () =
   let oc = open_out "graph25.dot" in
   Neato.output_graph oc g;
   close_out oc
 
+(* then, remove the cut *)
 let () =
   G.remove_edge g "tnz" "dgt";
   G.remove_edge g "ddc" "gqm";
   G.remove_edge g "kzh" "rks"
 
+(* and compute the connected components *)
 module CC = Graph.Components.Undirected(G)
 let cc = CC.components_array g
 
