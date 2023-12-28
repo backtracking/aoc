@@ -139,6 +139,18 @@
  (libraries lib grid))
 
 (executable
+ (name day24p2)
+ (promote (until-clean))
+ (modules day24p2)
+ (libraries lib grid))
+
+(executable
+ (name tmp)
+ (promote (until-clean))
+ (modules tmp)
+ (libraries lib))
+
+(executable
  (name day25)
  (promote (until-clean))
  (modules day25)
