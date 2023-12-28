@@ -142,13 +142,7 @@
  (name day24p2)
  (promote (until-clean))
  (modules day24p2)
- (libraries lib grid))
-
-(executable
- (name tmp)
- (promote (until-clean))
- (modules tmp)
- (libraries lib))
+ (libraries zarith lib))
 
 (executable
  (name day25)

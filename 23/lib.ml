@@ -86,30 +86,42 @@ let eucl_div a b =
   if b <= 0 then invalid_arg "eucl_div";
   if a >= 0 then a / b, a mod b else a / b - 1, b + a mod b
 
-let gaussian_elimination a =
-  let a = Array.map Array.copy a in
-  let n = Array.length a in
-  if n = 0 then a else
-  let m = Array.length a.(0) in
-  for k = 0 to min n m - 1 do
-    let imax = ref k in
-    for i = k+1 to n - 1 do
-      if abs_float a.(i).(k) > abs_float a.(!imax).(k) then imax := i
-    done;
-    if !imax <> k then (
-      let t = a.(k) in a.(k) <- a.(!imax); a.(!imax) <- t;
-    );
-    let pivot = a.(k).(k) in
-    if pivot = 0. then failwith "gaussian_elimination: singular matrix";
-    for j = 0 to m - 1 do
-      a.(k).(j) <- a.(k).(j) /. pivot
-    done;
-    for i = 0 to n - 1 do if i <> k then (
-      let x = a.(i).(k) in
+module GaussianElimination(Q: sig
+  type t
+  val zero: t
+  val equal: t -> t -> bool
+  val sub: t -> t -> t
+  val mul: t -> t -> t
+  val div: t -> t -> t
+end) = struct
+
+  let gaussian_elimination select a =
+    let a = Array.map Array.copy a in
+    let n = Array.length a in
+    if n = 0 then a else
+    let m = Array.length a.(0) in
+    for k = 0 to min n m - 1 do
+      let imax = ref k in
+      for i = k+1 to n - 1 do
+        let x = select a.(i).(k) a.(!imax).(k) in
+        if Q.equal x a.(i).(k) then imax := i
+      done;
+      if !imax <> k then (
+        let t = a.(k) in a.(k) <- a.(!imax); a.(!imax) <- t;
+      );
+      let pivot = a.(k).(k) in
+      if Q.equal pivot Q.zero then failwith "gaussian_elimination: singular matrix";
       for j = 0 to m - 1 do
-        a.(i).(j) <- a.(i).(j) -. (a.(k).(j) *. x)
+        a.(k).(j) <- Q.div a.(k).(j) pivot
+      done;
+      for i = 0 to n - 1 do if i <> k then (
+        let x = a.(i).(k) in
+        for j = 0 to m - 1 do
+          a.(i).(j) <- Q.sub a.(i).(j) (Q.mul a.(k).(j) x)
+        done
+      )
       done
-    )
-    done
-  done;
-  a
+    done;
+    a
+
+end
