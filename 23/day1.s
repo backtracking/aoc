@@ -1,4 +1,6 @@
 ##  Advent of Code 2023, #1
+##  in x86-64 assembly, just for the fun of it
+
 .text
 .globl main
         ## %rbx : total sum
@@ -43,5 +45,5 @@ main:
 Lmsg:   .string "sum = %d\n"
 
 ## Local Variables:
-## compile-command: "gcc -no-pie p1.s -o p1 && ./p1"
+## compile-command: "gcc -no-pie day1.s -o day1 && ./day1 < input1.txt"
 ## End:
