@@ -98,3 +98,13 @@
  (modules day8p2)
  (libraries lib grid))
 
+(executable
+ (name day9)
+ (promote (until-clean))
+ (modules day9)
+ (libraries lib grid))
+(executable
+ (name day9p2)
+ (promote (until-clean))
+ (modules day9p2)
+ (libraries lib grid))
