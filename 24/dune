@@ -108,3 +108,14 @@
  (promote (until-clean))
  (modules day9p2)
  (libraries lib grid))
+
+(executable
+ (name day10)
+ (promote (until-clean))
+ (modules day10)
+ (libraries lib grid))
+(executable
+ (name day10p2)
+ (promote (until-clean))
+ (modules day10p2)
+ (libraries lib grid))
