@@ -17,3 +17,14 @@
  (promote (until-clean))
  (modules day1p2)
  (libraries lib grid))
+
+(executable
+ (name day2)
+ (promote (until-clean))
+ (modules day2)
+ (libraries lib grid))
+(executable
+ (name day2p2)
+ (promote (until-clean))
+ (modules day2p2)
+ (libraries lib grid))
