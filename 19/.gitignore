@@ -1,0 +1,8 @@
+*.exe
+input*.txt
+test*.txt
+bloc20*.txt
+_build/
+graph25.dot
+graph25.pdf
+day1
