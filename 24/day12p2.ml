@@ -16,18 +16,24 @@ let visit p r =
   let outside q = not (inside g q) || get g q <> r in
   let inside_ q = inside g q && get g q = r in
   let corners = ref 0 in
-  let corner1  q = outside (move N q) && outside (move W q) && outside (move NW q) in
-  let corner2  q = outside (move N q) && outside (move E q) && outside (move NE q) in
-  let corner3  q = outside (move S q) && outside (move W q) && outside (move SW q) in
-  let corner4  q = outside (move S q) && outside (move E q) && outside (move SE q) in
-  let corner5  q = inside_ (move N q) && inside_ (move E q) && outside (move NE q) in
-  let corner6  q = inside_ (move N q) && inside_ (move W q) && outside (move NW q) in
-  let corner7  q = inside_ (move S q) && inside_ (move E q) && outside (move SE q) in
-  let corner8  q = inside_ (move S q) && inside_ (move W q) && outside (move SW q) in
-  let corner9  q = outside (move N q) && outside (move E q) && inside_ (move NE q) in
-  let corner10 q = outside (move N q) && outside (move W q) && inside_ (move NW q) in
-  let corner11 q = outside (move S q) && outside (move E q) && inside_ (move SE q) in
-  let corner12 q = outside (move S q) && outside (move W q) && inside_ (move SW q) in
+  let corner_in d1 d2 d3 q =
+    outside (move d1 q) && outside (move d2 q) && outside (move d3 q) in
+  let corner1 = corner_in N W NW in
+  let corner2 = corner_in N E NE in
+  let corner3 = corner_in S W SW in
+  let corner4 = corner_in S E SE in
+  let corner_out d1 d2 d3 q =
+    inside_ (move d1 q) && inside_ (move d2 q) && outside (move d3 q) in
+  let corner5 = corner_out N E NE in
+  let corner6 = corner_out N W NW in
+  let corner7 = corner_out S E SE in
+  let corner8 = corner_out S W SW in
+  let corner_cross d1 d2 d3 q =
+    outside (move d1 q) && outside (move d2 q) && inside_ (move d3 q) in
+  let corner9  = corner_cross N E NE in
+  let corner10 = corner_cross N W NW in
+  let corner11 = corner_cross S E SE in
+  let corner12 = corner_cross S W SW in
   let rec percolate p c = if c = r && not (get visited p) then (
     set visited p true;
     ar += 1;
