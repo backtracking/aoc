@@ -136,3 +136,9 @@
  (promote (until-clean))
  (modules day12p2)
  (libraries lib grid))
+
+(executable
+ (name day13)
+ (promote (until-clean))
+ (modules day13)
+ (libraries zarith lib grid))
