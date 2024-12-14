@@ -56,3 +56,14 @@
  (promote (until-clean))
  (modules day5)
  (libraries machine lib grid))
+
+(executable
+ (name day6)
+ (promote (until-clean))
+ (modules day6)
+ (libraries lib grid))
+(executable
+ (name day6p2)
+ (promote (until-clean))
+ (modules day6p2)
+ (libraries lib grid))
