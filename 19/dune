@@ -95,3 +95,9 @@
  (promote (until-clean))
  (modules day9)
  (libraries machine lib grid))
+
+(executable
+ (name day10)
+ (promote (until-clean))
+ (modules day10)
+ (libraries machine lib grid))
