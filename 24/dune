@@ -142,3 +142,14 @@
  (promote (until-clean))
  (modules day13)
  (libraries zarith lib grid))
+
+(executable
+ (name day14)
+ (promote (until-clean))
+ (modules day14)
+ (libraries lib grid))
+(executable
+ (name day14p2)
+ (promote (until-clean))
+ (modules day14p2)
+ (libraries lib grid))
