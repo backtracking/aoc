@@ -123,3 +123,14 @@
  (promote (until-clean))
  (modules day12p2)
  (libraries machine lib grid))
+
+(executable
+ (name day13)
+ (promote (until-clean))
+ (modules day13)
+ (libraries machine lib grid))
+(executable
+ (name day13p2)
+ (promote (until-clean))
+ (modules day13p2)
+ (libraries graphics machine lib grid))
