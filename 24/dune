@@ -198,3 +198,14 @@
  (promote (until-clean))
  (modules day19p2)
  (libraries lib grid))
+
+(executable
+ (name day20)
+ (promote (until-clean))
+ (modules day20)
+ (libraries lib grid))
+(executable
+ (name day20p2)
+ (promote (until-clean))
+ (modules day20p2)
+ (libraries lib grid))
