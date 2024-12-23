@@ -94,30 +94,34 @@ let print_direction fmt d =
   fprintf fmt "%c" (char_of_dir d)
 let print_path =
   pp_print_list ~pp_sep:(fun fmt () -> ()) pp_print_char
+let print_sequence =
+  pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "|") pp_print_string
+
+let string_of_list = memo (fun _ l ->
+  let b = Buffer.create 16 in
+  List.iter (Buffer.add_char b) l;
+  Buffer.add_char b 'A';
+  Buffer.contents b
+)
 
 let solve pad code f =
-  let b = Buffer.create 100 in
-  let rec find s i =
+  let rec find acc s i =
     if i = String.length code then (
-      f (Buffer.contents b)
+      f (List.rev acc)
     ) else (
       let c = code.[i] in
       let xl = pad (s, c) in
-      let len = Buffer.length b in
-      List.iter (fun p -> List.iter (Buffer.add_char b) p;
-                          Buffer.add_char b 'A';
-                          find c (i+1);
-                          Buffer.truncate b len
+      List.iter (fun p -> find (string_of_list p :: acc) c (i+1);
         ) xl;
     ) in
-  find 'A' 0
+  find [] 'A' 0
 
-(* n robots to solve move from x to y *)
+(* n robots to solve sequence s *)
 let robot = memo (fun robot (n, s) ->
   if n = 0 then String.length s else
   let best = ref max_int in
   solve dirpath s (fun s1 ->
-    let k = robot (n-1, s1) in
+    let k = List.fold_left (fun acc s1 -> acc + robot (n-1, s1)) 0 s1 in
     if k < !best then best := k
   );
   !best
@@ -129,15 +133,20 @@ let complexity s =
   printf "code %s@." s;
   let best = ref max_int in
   solve numpath s (fun s1 ->
-    printf "s1 = %s@." s1;
-  solve dirpath s1 (fun s2 ->
-    let n = robot (nborots - 1, s2) in
+    printf "s1 = %a@." print_sequence s1;
+    let f acc s = acc + robot (nborots, s) in
+    let n = List.fold_left f 0 s1 in
     if n < !best then best := n
-  ));
+  );
   printf "  => %d@." !best;
   !best * int_of_string (String.sub s 0 (String.length s - 1))
 
 let ans = fold_lines stdin (fun s acc -> acc + complexity s) 0
 let () = printf "%d@." ans
+
+(*
+306335137543664
+user	0m0.008s
+*)
 
 
