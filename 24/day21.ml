@@ -82,7 +82,6 @@ let build_simple_paths cl f =
     let pl = path (s, t, len) in
     let pl = List.map (List.map char_of_dir) pl in
     if pl <> [] then (H.add h (s, t) pl; raise Exit)
-    (* H.replace h (s, t) (pl @ try H.find h (s, t) with Not_found -> []) *)
   done with Exit -> ()) cl) cl;
   H.find h
 
@@ -96,12 +95,12 @@ let print_direction fmt d =
 let print_path =
   pp_print_list ~pp_sep:(fun fmt () -> ()) pp_print_char
 
-let solve pad code ~max f =
+let solve pad code f =
   let b = Buffer.create 100 in
   let rec find s i =
     if i = String.length code then (
       f (Buffer.contents b)
-    ) else if Buffer.length b < max then (
+    ) else (
       let c = code.[i] in
       let xl = pad (s, c) in
       let len = Buffer.length b in
@@ -118,29 +117,22 @@ let string_of_list l =
   List.iter (Buffer.add_char b) l;
   Buffer.contents b
 
-(* let () = *)
-(*   let pl = numpath ('A', '1') in *)
-(*   List.iter (fun p -> printf "%a@." print_path p) pl; *)
-(*   exit 0 *)
-
+(*
 let solve_min pad code =
   let best = ref "" in
-  solve pad code ~max:max_int (fun sol ->
+  solve pad code (fun sol ->
     if !best = "" || String.length sol < String.length !best then best := sol);
   let s = !best in
   printf "best: %s (%d)@." s (String.length s);
   s
+*)
 
 let complexity s =
   printf "code %s@." s;
   let best = ref "" in
-  solve numpath s  ~max:max_int (fun s1 ->
-      printf "s1 = %s@." s1;
-  solve dirpath s1 ~max:max_int (fun s2 ->
-      (* printf "  s2 = %s@." s2; *)
-  (* let max = if !best = "" then 70 else String.length !best in *)
-  solve dirpath s2 ~max:max_int (fun s3 ->
-      (* printf "    s3 = %s@." s3; *)
+  solve numpath s  (fun s1 ->
+  solve dirpath s1 (fun s2 ->
+  solve dirpath s2 (fun s3 ->
      if !best = "" || String.length s3 < String.length !best then best := s3
   )));
   printf "  => %s (%d)@." !best (String.length !best);
