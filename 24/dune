@@ -215,6 +215,11 @@
  (promote (until-clean))
  (modules day21)
  (libraries lib grid))
+(executable
+ (name day21p2)
+ (promote (until-clean))
+ (modules day21p2)
+ (libraries lib grid))
 
 (executable
  (name day22)

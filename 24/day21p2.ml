@@ -112,26 +112,30 @@ let solve pad code f =
     ) in
   find 'A' 0
 
-(*
-let solve_min pad code =
-  let best = ref "" in
-  solve pad code (fun sol ->
-    if !best = "" || String.length sol < String.length !best then best := sol);
-  let s = !best in
-  printf "best: %s (%d)@." s (String.length s);
-  s
-*)
+(* n robots to solve move from x to y *)
+let robot = memo (fun robot (n, s) ->
+  if n = 0 then String.length s else
+  let best = ref max_int in
+  solve dirpath s (fun s1 ->
+    let k = robot (n-1, s1) in
+    if k < !best then best := k
+  );
+  !best
+)
+
+let nborots = int_of_string Sys.argv.(1)
 
 let complexity s =
   printf "code %s@." s;
-  let best = ref "" in
-  solve numpath s  (fun s1 ->
+  let best = ref max_int in
+  solve numpath s (fun s1 ->
+    printf "s1 = %s@." s1;
   solve dirpath s1 (fun s2 ->
-  solve dirpath s2 (fun s3 ->
-   if !best = "" || String.length s3 < String.length !best then best := s3
-  )));
-  printf "  => %s (%d)@." !best (String.length !best);
-  String.length !best * int_of_string (String.sub s 0 (String.length s - 1))
+    let n = robot (nborots - 1, s2) in
+    if n < !best then best := n
+  ));
+  printf "  => %d@." !best;
+  !best * int_of_string (String.sub s 0 (String.length s - 1))
 
 let ans = fold_lines stdin (fun s acc -> acc + complexity s) 0
 let () = printf "%d@." ans
