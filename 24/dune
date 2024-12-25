@@ -254,3 +254,9 @@
  (modules day24p2)
  (libraries lib grid))
 
+(executable
+ (name day25)
+ (promote (until-clean))
+ (modules day25)
+ (libraries lib grid))
+
