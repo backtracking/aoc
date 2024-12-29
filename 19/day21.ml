@@ -6,8 +6,11 @@ open Machine
 
 let code = read stdin
 
+(* part 1 *)
 let send = "NOT A J\nNOT B T\nOR T J\nNOT C T\nOR T J\nAND D J\nWALK\n"
-(*
+
+(* part 2
+
   we jump iff
       (F or H or I)
   and (H or E)
