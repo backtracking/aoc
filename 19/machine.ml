@@ -4,6 +4,12 @@ open Lib
 let read c =
   A.of_list (split_ints ~sep:',' (input_line c))
 
+let read_from_file f =
+  let c = open_in f in
+  let code = read c in
+  close_in c;
+  code
+
 type kont =
   | Halt
   | Input of (int -> kont)
