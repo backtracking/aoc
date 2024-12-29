@@ -173,3 +173,9 @@
  (promote (until-clean))
  (modules day19p2)
  (libraries machine lib grid))
+
+(executable
+ (name day21)
+ (promote (until-clean))
+ (modules day21)
+ (libraries machine lib grid))
