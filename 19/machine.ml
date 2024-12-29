@@ -1,6 +1,9 @@
 
 open Lib
 
+let read c =
+  A.of_list (split_ints ~sep:',' (input_line c))
+
 type kont =
   | Halt
   | Input of (int -> kont)

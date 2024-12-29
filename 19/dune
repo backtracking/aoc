@@ -134,3 +134,20 @@
  (promote (until-clean))
  (modules day13p2)
  (libraries graphics machine lib grid))
+
+(executable
+ (name day14)
+ (promote (until-clean))
+ (modules day14)
+ (libraries lib grid))
+
+(executable
+ (name day15)
+ (promote (until-clean))
+ (modules day15)
+ (libraries machine lib grid))
+(executable
+ (name day15p2)
+ (promote (until-clean))
+ (modules day15p2)
+ (libraries machine lib grid))
