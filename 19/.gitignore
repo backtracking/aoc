@@ -1,5 +1,6 @@
 *.exe
 input*.txt
+sample*.txt
 test*.txt
 bloc20*.txt
 _build/

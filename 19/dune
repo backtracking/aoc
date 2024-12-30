@@ -153,6 +153,17 @@
  (libraries machine lib grid))
 
 (executable
+ (name day16)
+ (promote (until-clean))
+ (modules day16)
+ (libraries machine lib grid))
+(executable
+ (name day16p2)
+ (promote (until-clean))
+ (modules day16p2)
+ (libraries machine lib grid))
+
+(executable
  (name day17)
  (promote (until-clean))
  (modules day17)
@@ -164,6 +175,17 @@
  (libraries machine lib grid))
 
 (executable
+ (name day18)
+ (promote (until-clean))
+ (modules day18)
+ (libraries machine lib grid))
+(executable
+ (name day18p2)
+ (promote (until-clean))
+ (modules day18p2)
+ (libraries machine lib grid))
+
+(executable
  (name day19)
  (promote (until-clean))
  (modules day19)
@@ -172,6 +194,12 @@
  (name day19p2)
  (promote (until-clean))
  (modules day19p2)
+ (libraries machine lib grid))
+
+(executable
+ (name day20)
+ (promote (until-clean))
+ (modules day20)
  (libraries machine lib grid))
 
 (executable
