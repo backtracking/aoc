@@ -200,7 +200,12 @@
  (name day20)
  (promote (until-clean))
  (modules day20)
- (libraries machine lib grid))
+ (libraries ocamlgraph lib grid))
+(executable
+ (name day20p2)
+ (promote (until-clean))
+ (modules day20p2)
+ (libraries ocamlgraph lib grid))
 
 (executable
  (name day21)
