@@ -214,6 +214,17 @@
  (libraries machine lib grid))
 
 (executable
+ (name day22)
+ (promote (until-clean))
+ (modules day22)
+ (libraries lib grid))
+(executable
+ (name day22p2)
+ (promote (until-clean))
+ (modules day22p2)
+ (libraries zarith lib grid))
+
+(executable
  (name day23)
  (promote (until-clean))
  (modules day23)
@@ -223,6 +234,12 @@
  (promote (until-clean))
  (modules day23p2)
  (libraries machine lib grid))
+
+(executable
+ (name day24)
+ (promote (until-clean))
+ (modules day24)
+ (libraries lib grid))
 
 (executable
  (name day25)
