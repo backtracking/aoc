@@ -23,34 +23,63 @@ let is_ore = function
   | _ -> false
 
 module M = Map.Make(String)
+let union = M.union (fun ch n1 n2 -> Some (n1 + n2))
+let print_map fmt m =
+  let print fmt (ch, n) = fprintf fmt "%d %s" n ch in
+  pp_print_list ~pp_sep:pp_print_space print fmt (M.to_list m)
 
-let add needs (n, ch) =
-  M.add ch (n + try M.find ch needs with Not_found -> 0) needs
+(* lo is for leftovers : map chemical -> int
 
-let rec needs acc (n, ch) =
+   solve n chemical ch using leftovers lo;
+   returns number of required ORE and the new leftovers *)
+let rec solve lo (n, ch) =
+  assert (n > 0 && ch <> "ORE");
+  match M.find ch lo with
+  | m ->
+      if m > n then 0, M.add ch (m - n) lo
+      else if m = n then 0, M.remove ch lo
+      else solve (M.remove ch lo) (n - m, ch)
+  | exception Not_found ->
   let k, pre = H.find reactions ch in
-  if is_ore pre then
-    add acc (n, ch)
-  else
-    let f = truncate (ceil (float n /. float k)) in
-    let add acc (m, ch) = needs acc (f * m, ch) in
-    List.fold_left add acc pre
+  let f = truncate (ceil (float n /. float k)) in
+  let ore, lo = match pre with
+  | [m, "ORE"] ->
+      f * m, lo
+  | _ ->
+      let add (n, lo) (p, ch) =
+        let todo = f * p in
+        let todo, lo = match M.find ch lo with
+          | n' ->
+              if n' <= todo then todo - n', M.remove ch lo
+              else 0, M.add ch (n' - todo) lo
+          | exception Not_found -> todo, lo in
+        if todo = 0 then
+          n, lo
+        else
+          let np, lo = solve lo (todo, ch) in (n + np, lo) in
+      List.fold_left add (0, lo) pre
+  in
+  let lo = if f * k = n then lo else union lo (M.singleton ch (f * k - n)) in
+  (* printf "solve %d %s => %d + %a@." n ch ore print_map lo; *)
+  ore, lo
 
-let todo = needs M.empty (1, "FUEL")
+let n, _ = solve M.empty (1, "FUEL")
+let () = printf "%d ORE for 1 FUEL@." n
 
-let () =
-  let l = M.fold (fun ch n l -> (n, ch) :: l) todo [] in
-  let print fmt (n, ch) = fprintf fmt "%d %s" n ch in
-  printf "%a@."
-    (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt ", ") print) l;
-  let ore = ref 0 in
-  let add (n, ch) = match H.find reactions ch with
-    | k, [m, "ORE"] ->
-        printf "%n %s:@." n ch;
-        printf "  %d ORE => %d %s" m k ch;
-        let f = truncate (ceil (float n /. float k)) in
-        printf " * %d times@." f;
-        ore += m * f
-    | _ -> assert false in
-  List.iter add l;
-  printf "%d ORE for 1 FUEL@." !ore
+(* part 2 *)
+
+let ore = 1_000_000_000_000
+let solve f = fst (solve M.empty (f, "FUEL"))
+
+let rec binary_search fmin fmax =
+  printf "%d..%d@." fmin fmax;
+  (* invariant solve fmin < ore < solve fmax *)
+  if fmax = fmin + 1 then fmin else
+  let mid = fmin + (fmax - fmin) / 2 in
+  let n = solve mid in
+  if n > ore then binary_search fmin mid else binary_search mid fmax
+
+let rec too_much f = if solve f > ore then f else too_much (2 * f)
+
+let nf = binary_search 1 (too_much 1)
+let () = printf "%d FUEL with %d ORE@." nf ore

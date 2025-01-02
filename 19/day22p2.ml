@@ -31,6 +31,11 @@ let div_mod x y m = Z.(
   to_int i
 )
 
+module M = Modular(struct let m = size end)
+
+let div_mod x y _ =
+  M.div x y
+
 let inverse i = function
   | DealIntoNew ->
       size - 1 - i
@@ -67,3 +72,10 @@ let () =
     i := inverse_all !i;
     incr step
   done
+
+(*
+cycle of length 410481 at step 1221185
+i = 92976909298873
+WRONG
+
+*)

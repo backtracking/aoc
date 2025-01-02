@@ -7,9 +7,17 @@ let code = read_from_file "input25.txt"
 
 let q = Queue.create ()
 
+let shortcut = function
+  | "n" -> "north"
+  | "s" -> "south"
+  | "w" -> "west"
+  | "e" -> "east"
+  | s   -> s
+
 let rec input () =
   if Queue.is_empty q then (
     let s = read_line () in
+    let s = shortcut s in
     String.iter (fun c -> Queue.add c q) s;
     Queue.add '\n' q;
     input ()
