@@ -3,7 +3,6 @@ open Format
 open Lib
 
 let size   = 119_315_717_514_047
-(* let size = int_of_string Sys.argv.(1) *)
 let repeat = 101_741_582_076_661
 
 type op =
@@ -24,58 +23,32 @@ let ops = map_lines stdin parse
 let () = printf "%d operations@." (List.length ops)
 let revops = List.rev ops
 
-let div_mod x y m = Z.(
-  let g, vy, _ = gcdext (of_int y) (of_int m) in
-  assert (g = one);
-  let i = erem (mul (of_int x) vy) (of_int m) in
-  to_int i
-)
-
 module M = Modular(struct let m = size end)
 
-let div_mod x y _ =
-  M.div x y
+(* the inverse of an operation is an affine transformation i -> ai + b *)
 
-let inverse i = function
+let inverse = function
   | DealIntoNew ->
-      size - 1 - i
+      M.of_int (-1), size - 1
   | Cut n ->
-      let n = if n < 0 then size + n else n in
-      if i >= size - n then i - (size - n) else i + n
+      M.one, M.of_int n
   | DealWithIncrement n ->
-      let k = div_mod i n size in
-      (* printf "incr n=%d i=%d k=%d@." n i k; *)
-      assert (0 <= k && k < size);
-      k
+      M.div M.one (M.of_int n), M.zero
 
-let inverse_all i =
-  List.fold_left inverse i revops
+(* the inverse of all operations is the composition *)
+
+let a, b =
+  let compose (a, b) op =
+    let c, d = inverse op in
+    M.(c ** a, c ** b ++ d) in
+  List.fold_left compose (M.one, M.zero) revops
+
+module Ma = Matrix(M)
+let m = [| [| a; b |];
+           [| 0; 1 |] |]
+
+let apply i =
+  (Ma.power_apply m repeat [| i; 1 |]).(0)
 
 let target = 2020
-(* let target = int_of_string Sys.argv.(2) *)
-
-let finish i step len =
-  printf "cycle of length %d at step %d@." len (step - len);
-  let todo = repeat - step in
-  let n = todo mod len in
-  let i = Lib.repeat n inverse_all i in
-  printf "i = %d@." i;
-  exit 0
-
-let () =
-  let seen = H.create 16 in
-  let i = ref target in
-  let step = ref 0 in
-  while true do
-    if H.mem seen !i then finish !i !step (!step - H.find seen !i);
-    H.add seen !i !step;
-    i := inverse_all !i;
-    incr step
-  done
-
-(*
-cycle of length 410481 at step 1221185
-i = 92976909298873
-WRONG
-
-*)
+let () = printf "%d@." (apply target)
