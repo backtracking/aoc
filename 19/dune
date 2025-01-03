@@ -240,6 +240,11 @@
  (promote (until-clean))
  (modules day24)
  (libraries lib grid))
+(executable
+ (name day24p2)
+ (promote (until-clean))
+ (modules day24p2)
+ (libraries lib grid))
 
 (executable
  (name day25)
