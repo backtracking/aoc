@@ -1,0 +1,20 @@
+(env
+ (dev
+  (flags ())))
+  ;; (flags (:standard -w -27-26-32))))
+
+(library
+ (name lib)
+ (modules lib))
+
+(executable
+ (name day1)
+ (promote (until-clean))
+ (modules day1)
+ (libraries lib grid))
+
+(executable
+ (name day1p2)
+ (promote (until-clean))
+ (modules day1p2)
+ (libraries lib grid))
