@@ -1,3 +1,4 @@
 *.exe
 input*.txt
+ex*.txt
 _build/
