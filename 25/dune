@@ -30,3 +30,15 @@
  (promote (until-clean))
  (modules day2p2)
  (libraries lib grid))
+
+(executable
+ (name day3)
+ (promote (until-clean))
+ (modules day3)
+ (libraries lib grid))
+
+(executable
+ (name day3p2)
+ (promote (until-clean))
+ (modules day3p2)
+ (libraries lib grid))
