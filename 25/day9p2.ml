@@ -29,6 +29,7 @@ let () =
   for i = 1 to np - 1 do lineto points.(i) done;
   lineto points.(0)
 
+(* all the segments *)
 let hlines = ref []
 let vlines = ref []
 
@@ -44,6 +45,7 @@ let () = printf "%d h lines, %d v lines@."
 
 let between x y z = x < y && y < z
 
+(* one of the segment strictly intersects the rectangle *)
 let intersected x1 y1 x2 y2 =
   let x1 = min x1 x2 and x2 = max x1 x2 in
   let y1 = min y1 y2 and y2 = max y1 y2 in
@@ -54,6 +56,8 @@ let intersected x1 y1 x2 y2 =
 
 let m = ref 0
 let best = ref (0,0,0,0)
+
+(* brute force all possible rectangles *)
 let () = points |> Array.iteri @@ fun i (x1,y1) ->
   for j = i+1 to Array.length points -1 do
     let x2,y2 = points.(j) in
@@ -62,8 +66,8 @@ let () = points |> Array.iteri @@ fun i (x1,y1) ->
       if a > !m then (m := a; best := (x1,y1,x2,y2))
   done
 
-let () = printf "max area = %d@." !m
 let () =
+  printf "max area = %d@." !m;
   let x1,y1,x2,y2 = !best in
   set_color red;
   moveto (x1,y1); lineto (x1,y2); lineto (x2,y2); lineto (x2,y1); lineto (x1,y1)
