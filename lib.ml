@@ -8,6 +8,16 @@ let char_of_int n = Char.chr (Char.code '0' + n)
 
 let print_position fmt (i, j) = Format.fprintf fmt "%d,%d" i j
 
+let print_array print fmt a =
+  let open Format in
+  let n = Array.length a in
+  fprintf fmt "@[";
+  Array.iteri (fun i x -> fprintf fmt "%a" print x;
+    if i < n-1 then fprintf fmt ",@,") a;
+  fprintf fmt "@]"
+
+let comma fmt () = Format.fprintf fmt ",@,"
+
 let input_lines c =
   let rec loop acc = match input_line c with
     | s -> loop (s :: acc)
@@ -19,10 +29,8 @@ let rec fold_lines c f acc =
   | l -> fold_lines c f (f l acc)
   | exception End_of_file -> acc
 
-let rec map_lines c f =
-  match input_line c with
-  | l -> f l :: map_lines c f
-  | exception End_of_file -> []
+let map_lines c f =
+  fold_lines c (fun s acc -> f s :: acc) [] |> List.rev
 
 let rec iter_lines c f =
   match input_line c with
@@ -119,6 +127,13 @@ let iverson b =
 
 let rec repeat n f x =
   if n = 0 then x else repeat (n-1) f (f x)
+
+let rec everywhere x f = function
+  | [] -> f [x]
+  | y :: r as l -> f (x :: l); everywhere x (fun p -> f (y :: p)) r
+let rec all_permutations f = function
+  | [] -> f []
+  | x :: l -> all_permutations (everywhere x f) l
 
 module Sint = struct
   include Set.Make(Int)
@@ -395,4 +410,342 @@ module Modular(M : sig val m : int end) = struct
       let rec loop acc i =
         if i > k then acc else loop (acc ** (n - i + 1) // i) (i + 1) in
       loop 1 1
+end
+
+(* Heap's algorithm
+   See http://en.wikipedia.org/wiki/Heap%27s_algorithm *)
+let iter_permutations n f =
+  let a = Array.init n (fun i -> i) in
+  let sign = ref true in
+  let swap i j = if i <> j then begin
+    let tmp = a.(i) in a.(i) <- a.(j); a.(j) <- tmp; sign := not !sign end in
+  let rec generate n =
+    if n = 1 then
+      f a !sign
+    else begin
+      for i = 0 to n - 1 do
+        generate (n - 1);
+        if n mod 2 = 0 then swap i (n - 1) else swap 0 (n-1)
+      done
+    end
+  in
+  if n > 0 then generate n
+
+module type RING = sig
+  type t
+  val zero : t
+  val one : t
+  val add : t -> t -> t
+  val sub : t -> t -> t
+  val mul : t -> t -> t
+  val print: Format.formatter -> t -> unit
+end
+
+module Matrix(X : RING) = struct
+
+  type t = X.t array array
+
+  let init rows cols f =
+    Array.init rows (fun i -> Array.init cols (fun j -> f i j))
+
+  let id n = init n n (fun i j -> if i = j then X.one else X.zero)
+
+  let add a b =
+    Array.mapi
+      (fun i ai ->
+	 let bi = b.(i) in
+	 Array.mapi (fun j aij -> X.add aij bi.(j)) ai)
+      a
+
+  let sub a b =
+    Array.mapi
+      (fun i ai ->
+	 let bi = b.(i) in
+	 Array.mapi (fun j aij -> X.sub aij bi.(j)) ai)
+      a
+
+  let transpose a =
+    let n = Array.length a in
+    if n = 0 then invalid_arg "transpose";
+    let m = Array.length a.(0) in
+    init m n (fun i j -> a.(j).(i))
+
+  (* multiply A[ai..ai+n[[aj..aj+p[ by
+              B[bi..bi+p[[bj..bj+m[ in C[ci..[[cj..[ *)
+  let low_mul n p m a ai aj b bi bj c ci cj =
+    for i = 0 to n - 1 do
+      let ai = a.(ai + i) in
+      let ci = c.(ci + i) in
+      for j = 0 to m - 1 do
+        let x = ref X.zero in
+        for k = 0 to p - 1 do
+          x := X.add !x (X.mul ai.(aj + k) b.(bi + k).(bj + j))
+        done;
+        ci.(cj + j) <- !x
+      done
+    done
+
+  (* matrix A is n x p and matrix B is p x m *)
+  let naive_mul n p m a b =
+    let c = Array.make_matrix n m X.zero in
+    low_mul n p m a 0 0 b 0 0 c 0 0;
+    c
+
+  let naive_mul n p m a b =
+    let c = Array.make_matrix n m X.zero in
+    let b = transpose b in
+    for i = 0 to n - 1 do
+      let ai = a.(i) in
+      let ci = c.(i) in
+      for j = 0 to m - 1 do
+        let bj = b.(j) in
+        let x = ref X.zero in
+        for k = 0 to p - 1 do
+          x := X.add !x (X.mul ai.(k) bj.(k))
+        done;
+        ci.(j) <- !x
+      done
+    done;
+    c
+
+  let strassen_cutoff = 200
+
+  let cut a ai aj n m =
+    Array.init n (fun i -> Array.init m (fun j -> a.(ai + i).(aj + j)))
+
+  let rec mul a b =
+    let n = Array.length a in
+    let p = Array.length b in
+    assert (n = 0 || Array.length a.(0) = p);
+    if p = 0 then [||] else
+    let m = Array.length b.(0) in
+    (* not square or small enough *)
+    if n <> p || p <> m || n <= strassen_cutoff then naive_mul n p m a b else
+    (* Strassen *)
+    if n mod 2 = 0 then
+      let n1 = n / 2 in
+      let a11 = cut a 0  0 n1 n1 and a12 = cut a 0  n1 n1 n1 in
+      let a21 = cut a n1 0 n1 n1 and a22 = cut a n1 n1 n1 n1 in
+      let b11 = cut b 0  0 n1 n1 and b12 = cut b 0  n1 n1 n1 in
+      let b21 = cut b n1 0 n1 n1 and b22 = cut b n1 n1 n1 n1 in
+      let x = sub a11 a21 in
+      let y = sub b22 b12 in
+      let c21 = mul x y in
+      let x = add a21 a22 in
+      let y = sub b12 b11 in
+      let c22 = mul x y in
+      let x = sub x a11 in
+      let y = sub b22 y in
+      let c12 = mul x y in
+      let x = sub a12 x in
+      let c11 = mul x b22 in
+      let x = mul a11 b11 in
+      let c12 = add x c12 in
+      let c21 = add c12 c21 in
+      let c12 = add c12 c22 in
+      let c22 = add c21 c22 in
+      let c12 = add c12 c11 in
+      let y = sub y b21 in
+      let c11 = mul a22 y in
+      let c21 = sub c21 c11 in
+      let c11 = mul a12 b21 in
+      let c11 = add x c11 in
+      Array.init n (fun i -> Array.init m (fun j ->
+        if i < n1 then if j < n1 then c11.(i).(j) else c12.(i).(j - n1)
+        else if j < n1 then c21.(i - n1).(j) else c22.(i - n1).(j - n1)))
+    else (* dynamic peeling *)
+      let n1 = n - 1 in
+      let a11 = cut a 0  0 n1 n1 and a12 = cut a 0  n1 n1 1 in
+      let a21 = cut a n1 0 1  n1 and a22 = cut a n1 n1 1  1 in
+      let b11 = cut b 0  0 n1 n1 and b12 = cut b 0  n1 n1 1 in
+      let b21 = cut b n1 0 1  n1 and b22 = cut b n1 n1 1  1 in
+      let c = add (mul a11 b11) (naive_mul n1 1 n1 a12 b21) in
+      let r12 = add (naive_mul n1 n1 1  a11 b12) (naive_mul n1 1  1 a12 b22) in
+      let r21 = add (naive_mul 1  n1 n1 a21 b11) (naive_mul 1  1 n1 a22 b21) in
+      let r22 = add (naive_mul 1  n1 1  a21 b12) (naive_mul 1  1  1 a22 b22) in
+      Array.init n (fun i -> Array.init m (fun j ->
+        if i < n1 then if j < n1 then c.(i).(j) else r12.(i).(j - n1)
+        else if j < n1 then r21.(i - n1).(j) else r22.(i - n1).(j - n1)))
+
+  let apply a v =
+    let n = Array.length a in
+    let p = Array.length v in
+    assert (n = 0 || Array.length a.(0) = p);
+    let product i =
+      let c = ref X.zero in
+      for k = 0 to p - 1 do c := X.add !c (X.mul a.(i).(k) v.(k)) done;
+      !c
+    in
+    Array.init n product
+
+  let rec power x n =
+    if n = 0 then
+      id (Array.length x)
+    else
+      let y = power x (n/2) in
+      if n mod 2 = 1 then mul x (mul y y) else mul y y
+
+  let rec power_apply x n v =
+    if n = 0 then
+      v
+    else
+      power_apply (mul x x) (n / 2) (if n mod 2 = 1 then apply x v else v)
+
+  let rec power64 x n =
+    if n = 0L then
+      id (Array.length x)
+    else
+      let y = power64 x (Int64.div n 2L) in
+      if Int64.rem n 2L = 1L then mul x (mul y y) else mul y y
+
+  let rec fold_interval lo hi f acc =
+    if lo > hi then acc else fold_interval (lo + 1) hi f (f acc lo)
+
+  (* very naive way to compute the determinant *)
+  let det x =
+    let n = Array.length x in
+    if n = 0 then X.zero else begin
+    if Array.length x.(0) <> n then invalid_arg "det";
+    let s = ref X.zero in
+    iter_permutations n (fun pi even ->
+      let p = fold_interval 0 (n-1) (fun p i -> X.mul p x.(pi.(i)).(i)) X.one in
+      if even then s := X.add !s p else s := X.sub !s p);
+    !s
+    end
+
+  open Format
+
+  let print_raw indices pr fmt m =
+    fprintf fmt "@[";
+    if indices && Array.length m > 0 then begin
+      fprintf fmt "   ";
+      for i = 0 to Array.length m.(0) - 1 do fprintf fmt "%d " i done;
+      fprintf fmt "@\n"
+    end;
+    let print_row i r =
+      if indices then fprintf fmt "%d: " i;
+      Array.iter (fun x -> fprintf fmt "%a " pr x) r;
+      fprintf fmt "@\n" in
+    Array.iteri print_row m;
+    fprintf fmt "@]"
+
+  let print_justify indices pr fmt m =
+    let rows = Array.length m in
+    if rows > 0 then begin
+      let cols = Array.length m.(0) in
+      let delta = if indices then 1 else 0 in
+      let make_row i =
+        if indices then
+          if i = 0 then
+            Array.init (cols + 1)
+              (fun j -> if j = 0 then "" else string_of_int (j - 1))
+          else
+            Array.init (cols + 1) (fun j ->
+              if j = 0 then string_of_int (i - 1)
+              else asprintf "%a" pr m.(i - 1).(j - 1))
+        else
+          Array.init cols (fun j -> asprintf "%a" pr m.(i).(j))
+      in
+      let t = Array.init (rows + delta) make_row in
+      let width = Array.init (cols + delta)
+        (fun j ->
+          Array.fold_left (fun w s -> max w (String.length s)) 0 t.(j)) in
+      fprintf fmt "@[";
+      let print_row r =
+        Array.iteri (fun j s ->
+          let pad = width.(j) - String.length s in
+          assert (pad >= 0);
+          fprintf fmt "%s%s " (String.make pad ' ') s) r;
+        fprintf fmt "@\n" in
+      Array.iter print_row t;
+      fprintf fmt "@]"
+    end
+
+  let print ?(justify=false) ?(indices=false) pr fmt m =
+    if justify then print_justify indices pr fmt m
+    else print_raw indices pr fmt m
+end
+
+module UF : sig
+  type t
+  val create: int -> t
+  val find: t -> int -> int
+  val union: t -> int -> int -> unit
+  val num_classes: t -> int
+end = struct
+
+  type t = {
+    rank: int array;
+    link: int array;
+    mutable nc: int;
+  }
+
+  let num_classes t =
+    t.nc
+
+  let create n =
+    { rank = Array.make n 0;
+      link = Array.init n (fun i -> i);
+      nc = n; }
+
+  let rec find t i =
+    let p = t.link.(i) in
+    if p = i then
+      i
+    else (
+      let r = find t p in
+      t.link.(i) <- r;
+      r
+    )
+
+  let union t i j =
+    let ri = find t i in
+    let rj = find t j in
+    if ri <> rj then (
+      t.nc <- t.nc - 1;
+      if t.rank.(ri) < t.rank.(rj) then
+        t.link.(ri) <- rj
+      else (
+        t.link.(rj) <- ri;
+        if t.rank.(ri) = t.rank.(rj) then
+          t.rank.(ri) <- t.rank.(ri) + 1
+      )
+    )
+
+end
+
+module BFS(P : sig
+  type t
+  type move
+  val success: t -> bool
+  val moves: t -> (move * t) list
+  val hash: t -> int
+  val equal: t -> t -> bool
+end) : sig
+  val search: P.t -> P.t * P.move list
+end = struct
+
+  module H = Hashtbl.Make(P)
+
+  let search s0 =
+    let visited = H.create 16 in
+    (* meaning is here ``already queued'' *)
+    let already s = (H.mem visited s) || (H.add visited s (); false) in
+    let _ = already s0 in
+    let q = Queue.create () in
+    Queue.add ([],s0) q;
+    let rec bfs () =
+      if Queue.length q = 0 then raise Not_found;
+      let path,s = Queue.take q in
+      if P.success s then
+	s, List.rev path
+      else begin
+	List.iter
+	  (fun (m,s') -> if not (already s') then Queue.add (m :: path, s') q)
+	  (P.moves s);
+	bfs ()
+      end
+    in
+    bfs ()
+
 end
