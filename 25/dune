@@ -125,7 +125,7 @@
  (name day10p2)
  (promote (until-clean))
  (modules day10p2)
- (libraries lib grid))
+ (libraries zarith lib grid))
 
 (executable
  (name day11)
@@ -138,3 +138,9 @@
  (promote (until-clean))
  (modules day11p2)
  (libraries lib grid))
+
+(executable
+ (name day12)
+ (promote (until-clean))
+ (modules day12)
+ (libraries combine lib grid))
