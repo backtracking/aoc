@@ -2,3 +2,4 @@
 input*.txt
 ex*.txt
 _build/
+tmp10.txt

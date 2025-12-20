@@ -19,6 +19,9 @@ let print_machine fmt m =
     (pp_print_list ~pp_sep:comma pp_print_int) m.joltage;
   fprintf fmt "@]@."
 
+let maxb = ref 0
+let maxj = ref 0
+
 let parse_machine s =
   let i = String.index_from s 0 ']' in
   let t = String.sub s 1 (i-1) in
@@ -28,34 +31,81 @@ let parse_machine s =
   let b = split_strings ~sep:' ' b |> List.map button in
   let k = String.index_from s j '}' in
   let l = String.sub s (j+1) (k-j-1) |> split_ints ~sep:',' in
+  maxj := max !maxj (List.length l);
+  maxb := max !maxb (List.length b);
   { target = t;
     buttons = b;
     joltage = l; }
 
 let machines = map_lines stdin parse_machine
+let () = printf "max %d buttons, max %d joltages@." !maxb !maxj
 
-let solve_with_z3 ?(debug=false) (eql: (string list * int) list) =
-  let pp_var fmt s = fprintf fmt "%s" s in
-  let vars = H.create 16 in
-  let add (vl, n) =
-    List.iter (fun v -> H.replace vars v ()) vl;
-    if debug then
-      printf "  @[sum(%a) = %d@]@." (pp_print_list ~pp_sep:comma pp_var) vl n in
-  List.iter add eql;
-  let file = Filename.temp_file "lp" ".smt2" in
-  let c = open_out file in
-  let fmt = formatter_of_out_channel c in
-  H.iter (fun v () -> fprintf fmt "(declare-fun %a () Int)@\n" pp_var v) vars;
-  H.iter (fun v () -> fprintf fmt "(assert (<= 0 %a))@\n" pp_var v) vars;
-  List.iter (fun (vl, s) ->
-      fprintf fmt "(assert (= @[(+ %a)@] %d))@\n"
-             (pp_print_list ~pp_sep:pp_print_space pp_var) vl s
-    ) eql;
-  fprintf fmt "(check-sat)@.";
-  close_out c;
-  let e = Sys.command (sprintf "z3-4.14.1 %s | grep -q -w sat" file) in
-  Sys.remove file;
-  e = 0
+module M = Map.Make(Int)
+module S = Set.Make(Int)
+exception Yes
+exception No
+
+let solve_for ?(debug=false) fuel targets buttons =
+  let nt = Array.length targets in
+  let nb = Array.length buttons in
+  let todo =  (* target -> joltage * set of buttons *)
+    fold_int 0 nt (fun t todo -> M.add t
+      (targets.(t),
+       fold_int 0 nb
+         (fun b s -> if List.mem t buttons.(b) then S.add b s else s) S.empty)
+      todo) M.empty in
+  let print todo =
+    printf "@[<hov 2>todo:";
+    let print_set fmt s =
+      fprintf fmt "{%a}" (pp_print_list ~pp_sep:comma pp_print_int)
+        (S.elements s) in
+    todo |> M.iter (fun j (t, s) -> printf "@ %d(%d) => %a;" j t print_set s);
+    printf "@]@.";
+  in
+  let press b n todo = (* press n times the button b *)
+    assert (n >= 0);
+    let update todo j =
+      let t, s = try M.find j todo with Not_found -> raise No in
+      if n > t then raise No;
+      if n = t then M.remove j todo else
+      let t = t - n in
+      let s = S.remove b s in
+      if S.is_empty s then raise No;
+      M.add j (t, s) todo in
+    List.fold_left update todo buttons.(b)
+  in
+  let rec solve fuel (todo: (int * S.t) M.t) =
+    if debug then print todo;
+    if fuel = 0 then raise (if M.is_empty todo then Yes else No);
+    if M.is_empty todo then raise No;
+    (* pick a joltage j with a minimum of buttons *)
+    let j, (tj, bj) = M.fold (fun j (t,s) (_, (bt, bs) as acc) ->
+      if (S.cardinal s, t) < (S.cardinal bs, bt) then (j,(t,s)) else acc)
+      todo (M.choose todo) in
+    let nb = S.cardinal bj in
+    assert (nb > 0);
+    if debug then printf "pick joltage %d, target=%d, %d buttons@." j tj nb;
+    if nb = 1 then ( (* only one button => no choice *)
+      let b = S.choose bj in
+      if debug then printf "button %d pressed %d times (no choice)@." b tj;
+      solve (fuel - tj) (press b tj todo)
+    ) else ( (* choose a button *)
+      let b = S.choose bj in
+      let m = List.fold_left (fun m j ->
+        if M.mem j todo then let t,_ = M.find j todo in min m t
+        else m) tj buttons.(b) in
+      for n = tj downto 0 do
+        if debug then printf "button %d pressed %d times@." b n;
+        try solve (fuel - n) (press b n todo) with No -> ()
+      done;
+      raise No
+    )
+  in
+  solve fuel todo
+
+let solve_for fuel targets buttons =
+  try solve_for ~debug:true fuel targets buttons; assert false
+  with Yes -> true | No -> false
 
 let total = ref 0
 
@@ -63,23 +113,18 @@ let solve m =
   printf "%a@?" print_machine m;
   let targets = Array.of_list m.joltage in
   let buttons = Array.of_list m.buttons in
-  let nc = Array.length targets in
-  let nb = Array.length buttons in
-  let eq = Array.make nc [] in
-  buttons |> Array.iteri (fun b cl ->
-    List.iter (fun c -> eq.(c) <- b :: eq.(c)) cl
-  );
-  let var i = "x" ^ string_of_int i in
-  let eq = Array.mapi (fun i bl -> List.map var bl, targets.(i)) eq
-           |> Array.to_list in
-  let bl = fold_int 0 nb (fun b acc -> (var b) :: acc) [] in
+  let minf = List.fold_left max 0 m.joltage in
+  let maxf = List.fold_left (+) 0 m.joltage in
+
+  let minf = 51 in
+  let maxf = 51 in
+
   let rec solve fuel =
     printf "solve %d =>@." fuel;
-    let eq = (bl, fuel) :: eq in
-    if solve_with_z3 eq then (printf "OK@."; fuel)
+    if fuel > maxf then (printf "fuel too large!@."; exit 1);
+    if solve_for fuel targets buttons then (printf "OK@."; fuel)
     else (printf "NO@."; solve (fuel + 1))
   in
-  let minf = List.fold_left max 0 m.joltage in
   printf "  min fuel = %d@." minf;
   let n = solve minf in
   printf "  => %d@." n;
@@ -87,3 +132,6 @@ let solve m =
 
 let () = List.iter solve machines; printf "total = %d@." !total
 
+(*
+19574
+*)

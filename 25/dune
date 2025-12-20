@@ -128,6 +128,12 @@
  (libraries zarith lib grid))
 
 (executable
+ (name day10p2z3)
+ (promote (until-clean))
+ (modules day10p2z3)
+ (libraries zarith lib grid))
+
+(executable
  (name day11)
  (promote (until-clean))
  (modules day11)
