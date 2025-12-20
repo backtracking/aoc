@@ -65,7 +65,8 @@ let solve_for ?(debug=false) fuel targets buttons =
   let press b n todo = (* press n times the button b *)
     assert (n >= 0);
     let update todo j =
-      let t, s = try M.find j todo with Not_found -> raise No in
+      if not (M.mem j todo) then (if n = 0 then todo else raise No) else
+      let t, s = M.find j todo in
       if n > t then raise No;
       if n = t then M.remove j todo else
       let t = t - n in
@@ -83,8 +84,12 @@ let solve_for ?(debug=false) fuel targets buttons =
       if (S.cardinal s, t) < (S.cardinal bs, bt) then (j,(t,s)) else acc)
       todo (M.choose todo) in
     let nb = S.cardinal bj in
-    assert (nb > 0);
     if debug then printf "pick joltage %d, target=%d, %d buttons@." j tj nb;
+    (* assert (nb > 0); *)
+    if nb = 0 then (
+      if tj > 0 then raise No;
+      assert false
+    ) else (
     if nb = 1 then ( (* only one button => no choice *)
       let b = S.choose bj in
       if debug then printf "button %d pressed %d times (no choice)@." b tj;
@@ -94,17 +99,17 @@ let solve_for ?(debug=false) fuel targets buttons =
       let m = List.fold_left (fun m j ->
         if M.mem j todo then let t,_ = M.find j todo in min m t
         else m) tj buttons.(b) in
-      for n = tj downto 0 do
+      for n = m downto 0 do
         if debug then printf "button %d pressed %d times@." b n;
         try solve (fuel - n) (press b n todo) with No -> ()
       done;
       raise No
-    )
+    ))
   in
   solve fuel todo
 
 let solve_for fuel targets buttons =
-  try solve_for ~debug:true fuel targets buttons; assert false
+  try solve_for ~debug:false fuel targets buttons; assert false
   with Yes -> true | No -> false
 
 let total = ref 0
@@ -116,8 +121,8 @@ let solve m =
   let minf = List.fold_left max 0 m.joltage in
   let maxf = List.fold_left (+) 0 m.joltage in
 
-  let minf = 51 in
-  let maxf = 51 in
+  (* let minf = 51 in *)
+  (* let maxf = 51 in *)
 
   let rec solve fuel =
     printf "solve %d =>@." fuel;
